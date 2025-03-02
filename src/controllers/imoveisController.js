@@ -1,23 +1,20 @@
 import { searchImoveis } from "../services/imovelService.js";
 import scrapeOlx from "../services/scrapers/olxScrapper.js";
+import AppError from "../utils/error.js";
 
 
-export const fetchAllImoveis = async (req, res) => {
+
+export const fetchAllImoveis = async (req, res, next) => {
     try {
-      const { id } = req.params;
-      
-      // Busca opcionalmente um cliente pelo ID (se necessário)
-      if (id) {
-        const resultado = await searchImoveis(id);
+          
+        const resultado = await searchImoveis();
         if (!resultado.success) {
           return res.status(404).json({ message: resultado.message });
         }
-      }
-  
-      const imoveis = await scrapeOlx();
-      res.json({ imoveis });
+      
+        res.json({ resultado });
     } catch (error) {
-      res.status(500).json({ message: "❌ Erro ao buscar imóveis", error });
+      next(error)
     }
 
     

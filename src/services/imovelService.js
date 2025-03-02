@@ -6,7 +6,8 @@ export const searchImoveis = async (id) => {
       if (!imoveis) {
         return { success: false, message: "❌ Cliente não encontrado" };
       }
-      return { success: true, cliente };
+      return { success: true, imoveis };
     } catch (error) {
+      console.error("Erro ao buscar imóveis:", error); // Log do erro no servidor
       return { success: false, error };
     }}
