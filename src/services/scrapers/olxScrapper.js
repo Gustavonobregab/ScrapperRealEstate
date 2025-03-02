@@ -3,7 +3,7 @@ import puppeteer from "puppeteer";
 const scrapeOlx = async (cliente = {}) => {
   console.log("🕵️ Scraping iniciado...");
 
-  let baseUrl = "https://www.olx.com.br/estado-pb?q=apartamento";
+  let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa?q=apartamento";
 
   // Montando os filtros com base no perfil do cliente
   const urlParams = new URLSearchParams();

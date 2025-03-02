@@ -1,31 +1,14 @@
-import Cliente from "../models/cliente.js";
-import scrapeOlx from "../services/olxScrapper.js";
+import { criarCliente, buscarClientePorId } from "../services/clienteService.js";
+import scrapeOlx from "../services/scrapers/olxScrapper.js";
 
-export const criarCliente = async (req, res) => {
-  try {
-    const cliente = new Cliente(req.body);
-    await cliente.save();
-    res.status(201).json({ message: "✅ Cliente cadastrado com sucesso!", cliente });
-  } catch (error) {
-    res.status(400).json({ message: "❌ Erro ao criar cliente", error });
+
+
+export const criarClienteC = async (req, res) => {
+  const resultado = await criarCliente(req.body);
+
+  if (resultado.success) {
+    return res.status(201).json({ message: "✅ Cliente cadastrado com sucesso!", cliente: resultado.cliente });
   }
-};
 
-export const buscarImoveis = async (req, res) => {
-  try {
-   
-
-   // let cliente = null;
-   /* if (id) {
-      cliente = await Cliente.findById(id);
-      if (!cliente) {
-        return res.status(404).json({ message: "❌ Cliente não encontrado" });
-      }
-    }
-    */
-    const imoveis = await scrapeOlx();
-    res.json({ imoveis });
-  } catch (error) {
-    res.status(500).json({ message: "❌ Erro ao buscar imóveis", error });
-  }
+  return res.status(400).json({ message: "❌ Erro ao criar cliente", error: resultado.error });
 };
