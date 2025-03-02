@@ -1,6 +1,6 @@
 import express from "express";
 import connectDB from "./config/database.js";
-import clienteRoutes from "./routes/clientesRouter.js";
+import router from "./routes/imoveisRouter.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -8,7 +8,7 @@ dotenv.config();
 // Criando a aplicação Express
 const app = express();
 app.use(express.json());
-app.use("/api", clienteRoutes);
+app.use("/api", router); 
 
 // Conectando ao MongoDB
 //connectDB();

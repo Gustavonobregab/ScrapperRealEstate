@@ -2,7 +2,7 @@ import { searchImoveis } from "../services/imovelService.js";
 import scrapeOlx from "../services/scrapers/olxScrapper.js";
 
 
-export const fetchImoveis = async (req, res) => {
+export const fetchAllImoveis = async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -19,4 +19,6 @@ export const fetchImoveis = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: "❌ Erro ao buscar imóveis", error });
     }
+
+    
 }
