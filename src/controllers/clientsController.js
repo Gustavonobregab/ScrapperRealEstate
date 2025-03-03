@@ -1,4 +1,4 @@
-import { createAClient, searchClientById, searchAllClients } from "../services/clienteService.js";
+import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily } from "../services/clienteService.js";
 import scrapeOlx from "../services/scrapers/olxScrapper.js";
 
 export const createClient = async (req, res, next) => {
@@ -19,11 +19,29 @@ export const getClientImoveis = async (req, res, next) => {
     const cliente = await searchClientById(clienteId);
 
     if (!cliente) {
-      return res.status(404).json({ message: "❌ Cliente não encontrado" });
+      return res.status(404).json({ message: "Cliente não encontrado" });
     }
 
     // Aqui poderia chamar um scraper, por exemplo
-     const imoveis = await scrapeOlx(cliente.cliente  );
+     const imoveis = await scrapeAndSendDaily(cliente.cliente);
+
+    return res.status(200).json({ cliente, imoveis  });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDailyClientImoveis = async (req, res, next) => {
+  try {
+    const { clienteId } = req.params;
+    const cliente = await searchClientById(clienteId);
+
+    if (!cliente) {
+      return res.status(404).json({ message: "Cliente não encontrado" });
+    }
+
+    // Aqui poderia chamar um scraper, por exemplo
+     const imoveis = await s(cliente.cliente  );
 
     return res.status(200).json({ cliente, imoveis  });
   } catch (error) {
