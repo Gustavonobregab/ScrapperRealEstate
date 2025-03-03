@@ -3,13 +3,20 @@ import scrapeOlx from "../services/scrapers/olxScrapper.js";
 
 export const createClient = async (req, res, next) => {
   try {
-    const resultado = await createAClient(req.body);
-
-    if (resultado.success) {
-      return res.status(201).json({ message: "Cliente cadastrado com sucesso!", cliente: resultado.cliente });
+    const userId = req.params.userId; 
+    if (!userId) {
+      return res.status(400).json({ message: "ID do usuário é obrigatório." });
     }
+
+    const newClient = await createAClient(userId, req.body);
+
+    if (!newClient.success) {
+      throw newClient.error;
+    }
+
+    return res.status(201).json({ message: "Cliente criado com sucesso!", cliente: newClient.cliente });
   } catch (error) {
-    next(error);
+    next(error)
   }
 };
 

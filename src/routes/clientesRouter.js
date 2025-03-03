@@ -3,7 +3,7 @@ import { createClient , getClientImoveis, getAllClients, getDailyClientImoveis }
 
 const router = express.Router();
 
-router.post("/createCliente", createClient);
+router.post("/createCliente/:userId", createClient);
 router.get("/clientes",  getAllClients );
 router.get("/:clienteId/imoveis", getClientImoveis);
 router.get("/:clienteId/dailyImoveis", getDailyClientImoveis);

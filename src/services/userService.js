@@ -35,3 +35,20 @@ export const fetchAllUsers = async () => {
     throw new Error("Erro ao buscar usuários");
   }
 };
+
+
+export const findByIdAndUpdate = async (userId, updateData) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+
+    if (!updatedUser) {
+      return { success: false, message: "Usuário não encontrado." };
+    }
+
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+

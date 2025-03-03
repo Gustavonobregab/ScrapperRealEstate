@@ -1,12 +1,21 @@
 import Cliente from "../models/cliente.js";
+import User from "../models/user.js"
 import ImovelEnviado from "../models/imovel.js";
 import sendWhatsApp from "../utils/sendWhatsapp.js";
 import scrapeOlx from "./scrapers/olxScrapper.js";
 
-export const createAClient = async (dadosCliente) => {
+
+
+export const createAClient = async (userId, dadosCliente) => {
   try {
     const cliente = new Cliente(dadosCliente);
     await cliente.save();
+
+
+    console.log(cliente.id)
+    // Adiciona o cliente ao usuário
+    const updateResult = await findByIdAndUpdate(userId, { $push: { clientes: cliente._id } });
+
     return { success: true, cliente };
   } catch (error) {
     return { success: false, error };
@@ -63,5 +72,23 @@ export const searchAllClients = async () => {
     return await Cliente.find();
   } catch (error) {
     throw new Error("Erro ao buscar clientes");
+  }
+};
+
+export const findByIdAndUpdate = async (userId, updateData) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, useFindAndModify: false }
+    );
+    
+    if (!updatedUser) {
+      return { success: false, message: "Usuário não encontrado" };
+    }
+
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    return { success: false, error };
   }
 };
