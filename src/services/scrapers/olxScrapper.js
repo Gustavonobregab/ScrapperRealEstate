@@ -1,19 +1,21 @@
 import puppeteer from "puppeteer";
 
-const scrapeOlx = async (cliente = {}) => {
+const scrapeOlx = async (cliente = null) => {
   console.log("🕵️ Scraping iniciado...");
 
-  let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa?q=apartamento";
+  let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa";
+  const urlParams = new URLSearchParams({ q: "apartamento" });
 
-  // Montando os filtros com base no perfil do cliente
-  const urlParams = new URLSearchParams();
-  if (cliente.valorMin) urlParams.append("ps", cliente.valorMin);
-  if (cliente.valorMax) urlParams.append("pe", cliente.valorMax);
-  if (cliente.bairro) urlParams.append("bairro", cliente.bairro);
+  
+  if (cliente) {
+    if (cliente.valorMin) urlParams.append("ps", cliente.valorMin);
+    if (cliente.valorMax) urlParams.append("pe", cliente.valorMax);
+  }
 
-  const finalUrl = `${baseUrl}&${urlParams.toString()}`;
+  // Montando a URL final
+  baseUrl = `${baseUrl}?${urlParams.toString()}`;
 
-  console.log("🔍 Acessando URL:", finalUrl);
+  console.log("🔍 URL gerada:", baseUrl);
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -22,8 +24,7 @@ const scrapeOlx = async (cliente = {}) => {
   );
 
   try {
-    await page.goto(finalUrl, { waitUntil: "networkidle2" });
-
+    await page.goto(baseUrl, { waitUntil: "networkidle2" });
     await page.waitForSelector("#main-content section a", { timeout: 10000 });
 
     const results = await page.evaluate(() => {
