@@ -1,6 +1,7 @@
 import Cliente from "../models/cliente.js";
 import ImovelEnviado from "../models/imovel.js";
-import sendEmail from "../utils/sendEmail.js";
+import sendWhatsApp from "../utils/sendWhatsapp.js";
+import scrapeOlx from "./scrapers/olxScrapper.js";
 
 export const createAClient = async (dadosCliente) => {
   try {
@@ -23,24 +24,24 @@ export const scrapeAndSendDaily = async (cliente) => {
   const linksEnviados = await ImovelEnviado.find({ clienteId: cliente._id }).distinct("link");
 
   // 3️⃣ Filtra apenas os imóveis que ainda não foram enviados
-  const imoveisFrescos = novosImoveis.filter(imovel => !linksEnviados.includes(imovel.link));
+  //const imoveisFrescos = novosImoveis.filter(imovel => !linksEnviados.includes(imovel.link));
 
-  if (imoveisFrescos.length > 0) {
+  //if (imoveisFrescos.length > 0) {
     // 4️⃣ Envia os novos imóveis para o cliente
-    await sendEmail(cliente.email, "Novos imóveis disponíveis!", imoveisFrescos);
+    await sendWhatsApp("Novos imóveis disponíveis!", linksEnviados.slice(0, 3));
 
     // 5️⃣ Salva os links dos imóveis enviados no banco
-    await ImovelEnviado.insertMany(
-      imoveisFrescos.map(imovel => ({
-        link: imovel.link,
-        clienteId: cliente._id,
-      }))
-    );
+    // await ImovelEnviado.insertMany(
+    //   imoveisFrescos.map(imovel => ({
+    //     link: imovel.link,
+    //     clienteId: cliente._id,
+    //   }))
+    // );
 
-    console.log(`✅ ${imoveisFrescos.length} imóveis enviados para ${cliente.email}`);
-  } else {
-    console.log(`❌ Nenhum imóvel novo para ${cliente.email} hoje.`);
-  }
+//    console.log(`✅ ${imoveisFrescos.length} imóveis enviados para ${cliente.email}`);
+//  } else {
+ //   console.log(`❌ Nenhum imóvel novo para ${cliente.email} hoje.`);
+ // }
 };
 
 

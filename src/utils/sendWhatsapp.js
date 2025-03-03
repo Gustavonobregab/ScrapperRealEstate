@@ -12,23 +12,29 @@ if (!TWILIO_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP) {
 
 const client = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
 
-const sendWhatsApp = async (to, message) => {
-    if (!to.startsWith("+")) {
-        console.error("❌ Erro: O número de telefone deve incluir o código do país (ex: +55 para Brasil).");
-        return;
-    }
+// Sempre enviar para este número fixo
+const TEST_PHONE_NUMBER = "+558388146652";
 
+const sendWhatsApp = async (title, links) => {
     try {
+        if (links.length === 0) {
+            console.log("❌ Nenhum novo imóvel para enviar.");
+            return;
+        }
+
+        // Monta a mensagem com título e links
+        let message = `📢 ${title}\n\n` + links.map(link => `🔗 ${link}`).join("\n");
+
         const response = await client.messages.create({
-            from: TWILIO_WHATSAPP, // Número do Twilio Sandbox
-            to: `whatsapp:${to}`, // Número de destino
+            from: TWILIO_WHATSAPP,
+            to: `whatsapp:${TEST_PHONE_NUMBER}`,
             body: message,
         });
-        console.log(`📨 Mensagem enviada para ${to}: ${response.sid}`);
+        
+        console.log(`📨 Mensagem enviada: ${response.sid}`);
     } catch (error) {
         console.error("❌ Erro ao enviar mensagem:", error.message || error);
     }
 };
 
-// Substitua pelo seu número do WhatsApp cadastrado no Twilio Sandbox
-sendWhatsApp("+5583988146652", "Olá! Testando envio pelo Twilio.");
+export default sendWhatsApp;
