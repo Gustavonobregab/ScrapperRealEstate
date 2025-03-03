@@ -23,7 +23,7 @@ export const getClientImoveis = async (req, res, next) => {
     }
 
     // Aqui poderia chamar um scraper, por exemplo
-     const imoveis = await scrapeAndSendDaily(cliente.cliente);
+     const imoveis = await scrapeOlx(cliente.cliente);
 
     return res.status(200).json({ cliente, imoveis  });
   } catch (error) {
