@@ -1,5 +1,5 @@
 import express from "express";
-import router from "./routes/imoveisRouter.js";
+import router from "./routes/router.js";
 import dotenv from "dotenv";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import mongoose from "mongoose";

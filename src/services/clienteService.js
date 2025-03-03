@@ -1,6 +1,6 @@
 import Cliente from "../models/cliente.js";
 
-export const criarCliente = async (dadosCliente) => {
+export const createAClient = async (dadosCliente) => {
   try {
     const cliente = new Cliente(dadosCliente);
     await cliente.save();
@@ -10,7 +10,7 @@ export const criarCliente = async (dadosCliente) => {
   }
 };
 
-export const buscarClientePorId = async (id) => {
+export const searchClientById = async (id) => {
   try {
     const cliente = await Cliente.findById(id);
     if (!cliente) {
@@ -19,5 +19,14 @@ export const buscarClientePorId = async (id) => {
     return { success: true, cliente };
   } catch (error) {
     return { success: false, error };
+  }
+};
+
+
+export const searchAllClients = async () => {
+  try {
+    return await Cliente.find();
+  } catch (error) {
+    throw new Error("Erro ao buscar clientes");
   }
 };
