@@ -1,5 +1,5 @@
 import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily } from "../services/clienteService.js";
-import scrapeOlx from "../services/scrapers/olxScrapper.js";
+import scrapeOlx from "../scrapper/olxScrapper.js";
 
 export const createClient = async (req, res, next) => {
   try {

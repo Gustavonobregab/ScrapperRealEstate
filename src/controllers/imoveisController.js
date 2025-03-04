@@ -1,5 +1,5 @@
 import { searchImoveis } from "../services/imovelService.js";
-import scrapeOlx from "../services/scrapers/olxScrapper.js";
+import scrapeOlx from "../scrapper/olxScrapper.js";
 import AppError from "../utils/error.js";
 
 

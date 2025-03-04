@@ -1,4 +1,4 @@
-import scrapeOlx from "./scrapers/olxScrapper.js";
+import scrapeOlx from "../scrapper/olxScrapper.js";
 
 export const searchImoveis = async (id) => {
     try {
@@ -11,3 +11,7 @@ export const searchImoveis = async (id) => {
       console.error("Erro ao buscar imóveis:", error); // Log do erro no servidor
       return { success: false, error };
     }}
+
+
+
+  
