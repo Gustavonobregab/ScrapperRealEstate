@@ -15,6 +15,10 @@ const client = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
 // Sempre enviar para este número fixo
 const TEST_PHONE_NUMBER = "+558388146652";
 
+// SID do template pré-configurado no Twilio
+const templateSid = "your-template-sid"; // Substitua pelo SID do seu template
+
+// Função para enviar WhatsApp usando o template
 const sendWhatsApp = async (title, links) => {
     try {
         if (links.length === 0) {
@@ -22,19 +26,34 @@ const sendWhatsApp = async (title, links) => {
             return;
         }
 
-        // Monta a mensagem com título e links
-        let message = `📢 ${title}\n\n` + links.map(link => `🔗 ${link}`).join("\n");
+        // Variáveis do template
+        const contentVariables = {
+            title: title,
+            links: links.join("\n") // Unindo os links em uma string separada por novas linhas
+        };
 
+        // Enviar a mensagem usando o template SID e variáveis
         const response = await client.messages.create({
             from: TWILIO_WHATSAPP,
             to: `whatsapp:${TEST_PHONE_NUMBER}`,
-            body: message,
+            messagingServiceSid: 'your-messaging-service-sid', // O SID do seu serviço de mensagens
+            contentSid: templateSid, // SID do template de conteúdo
+            contentVariables: contentVariables // Variáveis do template
         });
-        
+
         console.log(`📨 Mensagem enviada: ${response.sid}`);
     } catch (error) {
         console.error("❌ Erro ao enviar mensagem:", error.message || error);
     }
 };
 
-export default sendWhatsApp;
+// Teste da função sendWhatsApp
+const title = "Novos imóveis disponíveis!";
+const links = [
+    "https://example.com/imovel1",
+    "https://example.com/imovel2",
+    "https://example.com/imovel3"
+];
+
+// Chama a função para testar
+sendWhatsApp(title, links);
