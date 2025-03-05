@@ -30,11 +30,15 @@ export const authenticateUser = async ({ email, senha }) => {
 
 export const fetchAllUsers = async () => {
   try {
-    return await User.find().select("-senha");
+    const users = await User.find();
+    console.log("✅ Usuários encontrados:", users);
+    return users;
   } catch (error) {
+    console.error("❌ Erro detalhado ao buscar usuários:", error);
     throw new Error("Erro ao buscar usuários");
   }
 };
+
 
 
 export const findByIdAndUpdate = async (userId, updateData) => {

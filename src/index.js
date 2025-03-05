@@ -4,8 +4,6 @@ import dotenv from "dotenv";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import mongoose from "mongoose";
 import { config } from "./config/config.js";
-import scrapeOlx from "./scrapper/olxScrapper.js";
-import { saveImoveisNoBanco } from "./imovel.service"; 
 
 dotenv.config();
 

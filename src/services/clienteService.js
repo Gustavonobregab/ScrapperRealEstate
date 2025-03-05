@@ -92,3 +92,19 @@ export const findByIdAndUpdate = async (userId, updateData) => {
     return { success: false, error };
   }
 };
+
+
+export const searchClientsByUserId = async (userId) => {
+  try {
+    // Busca o usuário pelo ID e popula a lista de clientes associados a ele
+    const user = await User.findById(userId).populate("clientes");
+
+    if (!user) {
+      return { success: false, message: "Usuário não encontrado" };
+    }
+
+    return { success: true, clientes: user.clientes };
+  } catch (error) {
+    return { success: false, error: "Erro ao buscar clientes do usuário" };
+  }
+};
