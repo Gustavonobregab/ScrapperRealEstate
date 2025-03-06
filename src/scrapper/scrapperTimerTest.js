@@ -28,17 +28,17 @@ const runScraping = async () => {
     console.log(users);
 
     for (const user of users) {
-        console.log(`👤 Buscando clientes de ${user.email} | Usuário: ${user.nome}...`);
+      //  console.log(`👤 Buscando clientes de ${user.email} | Usuário: ${user.nome}...`);
         
         const clientes = await searchClientsByUserId(user._id);
         const clientesArr = clientes.clientes; 
 
         for (const cliente of clientesArr) {
-          console.log(`\n==============================`);
-          console.log(`📢 Buscando imóveis para ${cliente.email} | Cliente: ${cliente.nome}`);
-          console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
-          console.log(`🏡 Modalidade: ${cliente.modalidade}`);
-          console.log(`==============================\n`);
+      //    console.log(`\n==============================`);
+       //   console.log(`📢 Buscando imóveis para ${cliente.email} | Cliente: ${cliente.nome}`);
+        //  console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
+        //  console.log(`🏡 Modalidade: ${cliente.modalidade}`);
+        //  console.log(`==============================\n`);
           
           // Faz o scraping dos imóveis para o cliente
           const novosImoveis = await scrapeOlx(cliente);
@@ -72,11 +72,11 @@ const runScraping = async () => {
               // Enviar no WhatsApp os primeiros 3 imóveis não enviados
 
 
-                console.log(imoveisFrescos)
-              await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos.slice(0, 3));
+              console.log(imoveisFrescos)
+       //       await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos.slice(0, 3));
 
             // Registrar os imóveis enviados no banco de dados para garantir que não sejam enviados novamente
-              const imoveisEnviados = imoveisFrescos.map(imovel => ({
+         /*     const imoveisEnviados = imoveisFrescos.map(imovel => ({
                   link: imovel.link,
                   clienteId: cliente._id,
               }));
@@ -86,7 +86,7 @@ const runScraping = async () => {
                   await ImovelEnviado.insertMany(imoveisEnviados, { ordered: false });
               } catch (error) {
                   console.log(`⚠️ Alguns imóveis já foram enviados para ${cliente.nome} (erro de duplicação), mas os outros foram inseridos.`);
-              }
+              }*/
 
   
            //   console.log(`✅ ${imoveisFrescos.length} imóveis enviados`);

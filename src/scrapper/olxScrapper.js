@@ -7,6 +7,8 @@ const scrapeOlx = async (cliente = null) => {
   const urlParams = new URLSearchParams({ q: "apartamento" });
 
   
+   urlParams.append("sf", "1");  //imóveis recentes
+
   if (cliente) {
     if (cliente.valorMin) urlParams.append("ps", cliente.valorMin);
     if (cliente.valorMax) urlParams.append("pe", cliente.valorMax);

@@ -108,3 +108,17 @@ export const searchClientsByUserId = async (userId) => {
     return { success: false, error: "Erro ao buscar clientes do usuário" };
   }
 };
+
+export const deleteClientById = async (clienteId) => {
+  try {
+    const clienteRemovido = await Cliente.findByIdAndDelete(clienteId);
+    
+    if (!clienteRemovido) {
+      return { success: false, message: "Cliente não encontrado." };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+};

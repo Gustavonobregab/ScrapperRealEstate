@@ -1,4 +1,4 @@
-import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily } from "../services/clienteService.js";
+import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily, deleteClientById } from "../services/clienteService.js";
 import scrapeOlx from "../scrapper/olxScrapper.js";
 
 export const createClient = async (req, res, next) => {
@@ -60,6 +60,22 @@ export const getAllClients = async (req, res, next) => {
   try {
     const clientes = await searchAllClients();
     return res.status(200).json(clientes);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const removeClient = async (req, res, next) => {
+  try {
+    const { clienteId } = req.params;
+    const result = await deleteClientById(clienteId);
+
+    if (!result.success) {
+      return res.status(404).json({ message: "Cliente não encontrado." });
+    }
+
+    return res.status(200).json({ message: "Cliente removido com sucesso!" });
   } catch (error) {
     next(error);
   }
