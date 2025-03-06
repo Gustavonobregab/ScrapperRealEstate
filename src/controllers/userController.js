@@ -1,6 +1,6 @@
-import { createUser, authenticateUser, fetchAllUsers } from "../services/userService.js";
+import { createUser, authenticateUser, fetchAllUsers, removeUser } from "../services/userService.js";
 
-export const registerUser = async (req, res, next) => {
+export const  registerUser = async (req, res, next) => {
   try {
     const resultado = await createUser(req.body);
     if (resultado.success) {
@@ -28,6 +28,20 @@ export const getAllUsers = async (req, res, next) => {
   try {
     const usuarios = await fetchAllUsers();
     return res.status(200).json(usuarios);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const result = await removeUser(userId);
+
+    if (result.success) {
+      return res.status(200).json({ message: "Usuário deletado com sucesso!" });
+    }
+    return res.status(404).json({ message: "Usuário não encontrado." });
   } catch (error) {
     next(error);
   }

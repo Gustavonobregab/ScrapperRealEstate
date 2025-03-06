@@ -56,3 +56,14 @@ export const findByIdAndUpdate = async (userId, updateData) => {
 };
 
 
+export const removeUser = async (userId) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return { success: false };
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
