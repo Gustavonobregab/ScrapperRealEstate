@@ -4,7 +4,8 @@ import { fetchAllUsers } from "../services/userService.js";
 import { searchClientsByUserId } from "../services/clienteService.js";
 import scrapeOlx from "./olxScrapper.js";
 import ImovelEnviado from "../models/imovel.js";
-import sendWhatsApp from "../utils/sendWhatsapp.js";
+// import sendWhatsApp from "../utils/sendWhatsapp.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 const connectToMongoDB = async () => {
   try {
@@ -69,7 +70,7 @@ const runScraping = async () => {
 
               //  console.log("Imoveis enviados para o cliente",imoveisFrescos.slice(0,3))
               // Enviar no WhatsApp os primeiros 3 imóveis não enviados
-              await sendWhatsApp(`Novos imóveis disponíveis para o cliente ${cliente.nome}`, imoveisFrescos.slice(0, 3));
+              await sendEmail(`Novos imóveis disponíveis para o cliente ${cliente.nome}`, imoveisFrescos.slice(0, 3));
 
             // Registrar os imóveis enviados no banco de dados para garantir que não sejam enviados novamente
               const imoveisEnviados = imoveisFrescos.map(imovel => ({

@@ -1,34 +1,43 @@
-import twilio from "twilio";
-import dotenv from "dotenv";
+import SibApiV3Sdk from 'sib-api-v3-sdk';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
-const { TWILIO_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP } = process.env;
+const { SIB_API_KEY, DESTINATION_EMAIL } = process.env;
 
-if (!TWILIO_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP) {
-    console.error("❌ Erro: Verifique se as variáveis de ambiente estão configuradas corretamente.");
+if (!SIB_API_KEY || !DESTINATION_EMAIL) {
+    console.error("❌ Erro: Verifique as variáveis de ambiente no arquivo .env");
     process.exit(1);
 }
 
-const client = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
+// Configurando a API do Brevo com a chave
+SibApiV3Sdk.ApiClient.instance.authentications['api-key'].apiKey = SIB_API_KEY;
 
-const sendWhatsApp = async (to, message) => {
-    if (!to.startsWith("+")) {
-        console.error("❌ Erro: O número de telefone deve incluir o código do país (ex: +55 para Brasil).");
-        return;
-    }
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
+// Função para enviar e-mail
+export const sendEmail = async (title, links) => {
     try {
-        const response = await client.messages.create({
-            from: TWILIO_WHATSAPP, // Número do Twilio Sandbox
-            to: `whatsapp:${to}`, // Número de destino
-            body: message,
-        });
-        console.log(`📨 Mensagem enviada para ${to}: ${response.sid}`);
+        if (links.length === 0) {
+            console.log("❌ Nenhum link para enviar.");
+            return;
+        }
+
+        const emailContent = `
+            <h2>${title}</h2>
+            <ul>${links.map(link => `<li><a href="${link}">${link}</a></li>`).join("")}</ul>
+        `;
+
+        sendSmtpEmail.sender = { email: 'crudnator@gmail.com', name: 'Notificações' };
+        sendSmtpEmail.to = [{ email: DESTINATION_EMAIL }];
+        sendSmtpEmail.subject = title;
+        sendSmtpEmail.htmlContent = emailContent;
+
+        const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log(`📧 E-mail enviado: ${response.messageId}`);
     } catch (error) {
-        console.error("❌ Erro ao enviar mensagem:", error.message || error);
+        console.error("❌ Erro ao enviar e-mail:", error.message || error);
     }
 };
 
-// Substitua pelo seu número do WhatsApp cadastrado no Twilio Sandbox
-sendWhatsApp("+5583988146652", "Olá! Testando envio pelo Twilio.");

@@ -1,7 +1,7 @@
 import Cliente from "../models/cliente.js";
 import User from "../models/user.js"
 import ImovelEnviado from "../models/imovel.js";
-import sendWhatsApp from "../utils/sendWhatsapp.js";
+// import sendWhatsApp from "../utils/sendWhatsapp.js";
 import scrapeOlx from "../scrapper/olxScrapper.js";
 
 
