@@ -70,7 +70,10 @@ const runScraping = async () => {
 
               //  console.log("Imoveis enviados para o cliente",imoveisFrescos.slice(0,3))
               // Enviar no WhatsApp os primeiros 3 imóveis não enviados
-              await sendEmail(`Novos imóveis disponíveis para o cliente ${cliente.nome}`, imoveisFrescos.slice(0, 3));
+
+
+                console.log(imoveisFrescos)
+              await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos.slice(0, 3));
 
             // Registrar os imóveis enviados no banco de dados para garantir que não sejam enviados novamente
               const imoveisEnviados = imoveisFrescos.map(imovel => ({
