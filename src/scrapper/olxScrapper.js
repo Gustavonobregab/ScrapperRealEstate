@@ -30,8 +30,8 @@ const scrapeOlx = async (cliente = null) => {
   
 
   try {
-    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-    await page.waitForSelector("#main-content section a", { timeout: 10000 });
+    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await page.waitForSelector("#main-content section a", { timeout: 20000 });
     const results = await page.evaluate(() => {
       return [...document.querySelectorAll("#main-content section")]
         .slice(0, 5) // 🚀 Pegando apenas os 3 primeiros imóveis
