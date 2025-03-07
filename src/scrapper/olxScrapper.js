@@ -34,7 +34,7 @@ const scrapeOlx = async (cliente = null) => {
     await page.waitForSelector("#main-content section a", { timeout: 20000 });
     const results = await page.evaluate(() => {
       return [...document.querySelectorAll("#main-content section")]
-        .slice(0, 5) // 🚀 Pegando apenas os 3 primeiros imóveis
+        .slice(0, 6) // 🚀 Pegando apenas os 6 primeiros imóveis
         .map((element) => {
           const linkElement = element.querySelector("a.olx-ad-card__title-link");
           return {

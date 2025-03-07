@@ -26,18 +26,21 @@ export const sendEmail = async (title, imoveis) => {
 
         // Montando o conteúdo do e-mail com título e links
         const emailContent = `
-            <h2>${title}</h2>
-            <ul>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+            <h2 style="color: #333; text-align: center;">${title}</h2>
+            <ul style="list-style: none; padding: 0;">
                 ${imoveis.map(imovel => 
-                    `<li>
-                        <strong>${imovel.title}</strong><br>
-                        Preço: ${imovel.price}<br>
-                        <a href="${imovel.link}">Ver Imóvel</a>
+                    `<li style="background: #fff; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <strong style="font-size: 16px; color: #007BFF;">${imovel.title}</strong><br>
+                        <span style="color: #555;">Preço: <strong>${imovel.price}</strong></span><br>
+                        <a href="${imovel.link}" style="color: #007BFF; word-break: break-all;">${imovel.link}</a>
+                        ${imovel.image ? `<br><img src="${imovel.image}" alt="Imagem do imóvel" style="max-width: 100%; border-radius: 5px; margin-top: 10px;">` : ''}
                     </li>`
                 ).join("")}
             </ul>
-        `;
-
+        </div>
+    `;
+    
         // Configurando o remetente, destinatários e conteúdo do e-mail
         sendSmtpEmail.sender = { email: 'crudnator@gmail.com', name: 'Notificações' };
         sendSmtpEmail.to = [
