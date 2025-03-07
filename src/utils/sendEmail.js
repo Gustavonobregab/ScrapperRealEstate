@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const { SIB_API_KEY, DESTINATION_EMAIL } = process.env;
+const { SIB_API_KEY, DESTINATION_EMAIL_1, DESTINATION_EMAIL_2 } = process.env;
 
-if (!SIB_API_KEY || !DESTINATION_EMAIL) {
+if (!SIB_API_KEY || !DESTINATION_EMAIL_1 || !DESTINATION_EMAIL_2) {
     console.error("❌ Erro: Verifique as variáveis de ambiente no arquivo .env");
     process.exit(1);
 }
@@ -38,9 +38,12 @@ export const sendEmail = async (title, imoveis) => {
             </ul>
         `;
 
-        // Configurando o remetente, destinatário e conteúdo do e-mail
+        // Configurando o remetente, destinatários e conteúdo do e-mail
         sendSmtpEmail.sender = { email: 'crudnator@gmail.com', name: 'Notificações' };
-        sendSmtpEmail.to = [{ email: DESTINATION_EMAIL }];
+        sendSmtpEmail.to = [
+            { email: DESTINATION_EMAIL_1 },
+            { email: DESTINATION_EMAIL_2 }
+        ];
         sendSmtpEmail.subject = title;
         sendSmtpEmail.htmlContent = emailContent;
 

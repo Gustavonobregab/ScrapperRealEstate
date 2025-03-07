@@ -19,6 +19,26 @@ const connectToMongoDB = async () => {
   }
 };
 
+
+const runScraping = async () => {
+  await connectToMongoDB();
+  try {
+    const users = await fetchAllUsers();
+    for (const user of users) {
+      const clientes = await searchClientsByUserId(user._id);
+      console.log(clientes);
+
+      for (const cliente of clientes.clientes) {
+        await processCliente(cliente);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Erro ao buscar usuários ou clientes:", error);
+  } finally {
+    mongoose.connection.close();
+  }
+};
+
 const processCliente = async (cliente) => {
   console.log(`📢 Buscando imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
@@ -49,7 +69,9 @@ const processCliente = async (cliente) => {
   console.log(`🏠 Enviando ${imoveisFrescos.length} imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(imoveisFrescos);
 
+   await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
   // Inserindo os novos imóveis no banco de dados
+
   try {
     const insertedImoveis = await ImovelEnviado.insertMany(
       imoveisFrescos.map(imovel => ({
@@ -58,6 +80,8 @@ const processCliente = async (cliente) => {
       })),
       { ordered: false }
     );
+
+
 
     console.log("✅ Imóveis adicionados:");
     insertedImoveis.forEach(imovel => {
@@ -68,24 +92,7 @@ const processCliente = async (cliente) => {
   }
 };
 
-const runScraping = async () => {
-  await connectToMongoDB();
-  try {
-    const users = await fetchAllUsers();
-    for (const user of users) {
-      const clientes = await searchClientsByUserId(user._id);
-      console.log(clientes);
 
-      for (const cliente of clientes.clientes) {
-        await processCliente(cliente);
-      }
-    }
-  } catch (error) {
-    console.error("❌ Erro ao buscar usuários ou clientes:", error);
-  } finally {
-    mongoose.connection.close();
-  }
-};
 
 
 
