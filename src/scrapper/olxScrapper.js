@@ -24,22 +24,23 @@ const scrapeOlx = async (cliente = null) => {
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
   );
+  
 
   try {
-    await page.goto(baseUrl, { waitUntil: "networkidle2" });
+    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForSelector("#main-content section a", { timeout: 10000 });
-
     const results = await page.evaluate(() => {
-      return [...document.querySelectorAll("#main-content section")].map((element) => {
-        const linkElement = element.querySelector("a.olx-ad-card__title-link");
-        return {
-          title: linkElement?.querySelector("h2")?.innerText.trim() || "Sem título",
-          price: element.querySelector("span")?.innerText.trim() || "Sem preço",
-          link: linkElement?.href || "#",
-        };
-      });
+      return [...document.querySelectorAll("#main-content section")]
+        .slice(0, 5) // 🚀 Pegando apenas os 3 primeiros imóveis
+        .map((element) => {
+          const linkElement = element.querySelector("a.olx-ad-card__title-link");
+          return {
+            title: linkElement?.querySelector("h2")?.innerText.trim() || "Sem título",
+            price: element.querySelector("span")?.innerText.trim() || "Sem preço",
+            link: linkElement?.href || "#",
+          };
+        });
     });
-
     return results;
   } catch (error) {
     console.error("❌ Erro durante o scraping:", error);
