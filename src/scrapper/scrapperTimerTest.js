@@ -19,25 +19,6 @@ const connectToMongoDB = async () => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const processCliente = async (cliente) => {
   console.log(`📢 Buscando imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
@@ -57,7 +38,7 @@ const processCliente = async (cliente) => {
 
   // Filtrar apenas os imóveis que ainda não foram enviados para este cliente
   const imoveisFrescos = novosImoveis
-    .filter(imovel => !linksEnviados.has(normalizeLink(imovel.link)))
+    .filter(imovel => !linksEnviados.has(imovel.link)) // Agora usa o link original
     .slice(0, 3);
 
   if (!imoveisFrescos.length) {
@@ -66,19 +47,22 @@ const processCliente = async (cliente) => {
   }
 
   console.log(`🏠 Enviando ${imoveisFrescos.length} imóveis para ${cliente.nome} (${cliente.email})`);
-  console.log(imoveisFrescos)
+  console.log(imoveisFrescos);
 
   // Inserindo os novos imóveis no banco de dados
   try {
-    await ImovelEnviado.insertMany(
+    const insertedImoveis = await ImovelEnviado.insertMany(
       imoveisFrescos.map(imovel => ({
-        link: normalizeLink(imovel.link), // Normaliza o link antes de salvar
+        link: imovel.link, // Agora salva o link sem normalização
         clienteId: cliente._id,
       })),
       { ordered: false }
     );
 
-    
+    console.log("✅ Imóveis adicionados:");
+    insertedImoveis.forEach(imovel => {
+      console.log(`📌 ID: ${imovel._id}, Link: ${imovel.link}`);
+    });
   } catch (error) {
     console.log("⚠️ Alguns imóveis já foram enviados anteriormente.");
   }
@@ -90,7 +74,7 @@ const runScraping = async () => {
     const users = await fetchAllUsers();
     for (const user of users) {
       const clientes = await searchClientsByUserId(user._id);
-      console.log(clientes)
+      console.log(clientes);
 
       for (const cliente of clientes.clientes) {
         await processCliente(cliente);
@@ -102,18 +86,5 @@ const runScraping = async () => {
     mongoose.connection.close();
   }
 };
-
-
-
-const normalizeLink = (link) => {
-  try {
-    const url = new URL(link);
-    url.search = ""; // Remove query params
-    return url.toString();
-  } catch (error) {
-    return link; // Se der erro, mantém o link original
-  }
-};
-
 
 runScraping();
