@@ -29,8 +29,8 @@ const runScraping = async () => {
       console.log(clientes);
 
       for (const cliente of clientes.clientes) {
-        await processClienteTest(cliente)
-   //     await processCliente(cliente);
+     //   await processClienteTest(cliente)
+        await processCliente(cliente);
       }
     }
   } catch (error) {
