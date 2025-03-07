@@ -87,4 +87,6 @@ const runScraping = async () => {
   }
 };
 
+
+
 runScraping();
