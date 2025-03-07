@@ -2,8 +2,8 @@ name: Run Daily Script
 
 on:
   schedule:
-    - cron: "0 11 * * *"  # Roda todo dia às 03:00 UTC (00:00 no Brasil)
-  workflow_dispatch: # Permite rodar manualmente
+    - cron: "0 11 * * *"  # Roda todo dia às 08:00 BRT (11:00 UTC)
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -12,9 +12,22 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v3
 
-      - name: Instalar dependências
+      - name: Criar arquivo .env
         run: |
-          npm install
+          echo "MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}" >> .env
+          echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
+          echo "MONGO_DB=${{ secrets.MONGO_DB }}" >> .env
+          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
+          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> .env
+          echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
+          echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> .env
+          echo "SIB_API_KEY=${{ secrets.SIB_API_KEY }}" >> .env
+          echo "DESTINATION_EMAIL_1=${{ secrets.DESTINATION_EMAIL_1 }}" >> .env
+          echo "DESTINATION_EMAIL_2=${{ secrets.DESTINATION_EMAIL_2 }}" >> .env
+
+      - name: Instalar dependências
+        run: npm install
 
       - name: Executar script
-        run: node src/scrapper/scrapperTimerTest.js  
+        run: node src/scrapper/scrapperTimerTest.js
