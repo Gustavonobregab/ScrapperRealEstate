@@ -29,7 +29,8 @@ const runScraping = async () => {
       console.log(clientes);
 
       for (const cliente of clientes.clientes) {
-        await processCliente(cliente);
+        await processClienteTest(cliente)
+   //     await processCliente(cliente);
       }
     }
   } catch (error) {
@@ -38,6 +39,7 @@ const runScraping = async () => {
     mongoose.connection.close();
   }
 };
+
 
 const processCliente = async (cliente) => {
   console.log(`📢 Buscando imóveis para ${cliente.nome} (${cliente.email})`);
@@ -69,7 +71,7 @@ const processCliente = async (cliente) => {
   console.log(`🏠 Enviando ${imoveisFrescos.length} imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(imoveisFrescos);
 
-   await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
+ //  await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
   // Inserindo os novos imóveis no banco de dados
 
   try {
@@ -92,6 +94,21 @@ const processCliente = async (cliente) => {
   }
 };
 
+
+const processClienteTest = async (cliente) => {
+  console.log(`📢 Testando busca de imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
+  console.log(`🏡 Modalidade: ${cliente.modalidade}`);
+
+  const novosImoveis = await scrapeOlx(cliente);
+  if (!novosImoveis.length) {
+    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
+    return;
+  }
+
+  console.log(`🏠 Imóveis encontrados para ${cliente.nome}:`);
+  console.log(novosImoveis);
+};
 
 
 
