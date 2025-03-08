@@ -71,7 +71,7 @@ const processCliente = async (cliente) => {
   console.log(`🏠 Enviando ${imoveisFrescos.length} imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(imoveisFrescos);
 
- //  await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
+   await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
   // Inserindo os novos imóveis no banco de dados
 
   try {

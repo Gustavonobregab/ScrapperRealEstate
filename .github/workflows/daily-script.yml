@@ -2,7 +2,8 @@ name: Run Daily Script
 
 on:
   schedule:
-    - cron: "0 11 * * *"  # Roda todo dia às 08:00 BRT (11:00 UTC)
+    - cron: "0 11 * * *"  # 08:00 BRT (11:00 UTC)
+    - cron: "0 23 * * *"  # 20:00 BRT (23:00 UTC)
   workflow_dispatch:
 
 jobs:
