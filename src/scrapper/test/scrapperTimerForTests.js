@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { config } from "../config/config.js";
-import { fetchAllUsers } from "../services/userService.js";
-import { searchClientsByUserId } from "../services/clienteService.js";
-import scrapeOlx from "./olxScrapper.js";
-import ImovelEnviado from "../models/imovel.js";
-import { sendEmail } from "../utils/sendEmail.js";
+import { config } from "../../config/config.js";
+import { fetchAllUsers } from "../../services/userService.js";
+import { searchClientsByUserId } from "../../services/clienteService.js";
+import scrapeOlx from "../olxScrapper.js";
+import ImovelEnviado from "../../models/imovel.js";
+import { sendEmail } from "../../utils/sendEmail.js";
 
 const connectToMongoDB = async () => {
   try {
