@@ -31,4 +31,4 @@ jobs:
         run: npm install
 
       - name: Executar script
-        run: node src/scrapper/scrapperTimerTest.js
+        run: node src/scrapper/scrapperTimer.js
