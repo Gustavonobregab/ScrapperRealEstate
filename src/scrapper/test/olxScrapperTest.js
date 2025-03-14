@@ -53,41 +53,55 @@ const scrapeOlxTest = async (cliente = null) => {
 
     if (cliente?.bairros && cliente.bairros.length > 0) {
         console.log(`🎯 Aplicando filtros para os bairros: ${cliente.bairros.join(", ")}`);
-      
-        for (const bairro of cliente.bairros) {
-          console.log(`🔎 Tentando filtrar pelo bairro: ${bairro}`);
-      
-          // 🛠️ Pequeno delay para evitar erros
-          await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 2000)));
-      
-          // Garante que o input está visível
-          await page.waitForSelector("#oraculo-62-input", { visible: true, timeout: 30000 });
-          console.log("📝 Campo de busca de bairro encontrado.");
-      
-          // Clica no input para ativá-lo
-          await page.click("#oraculo-62-input");
-          await page.click("#oraculo-62-input"); // Segundo clique para garantir foco
-      
-          // Limpa o campo antes de digitar
-          await page.evaluate(() => {
-            document.querySelector("#oraculo-62-input").value = "";
-          });
-      
-          // Digita o bairro no campo de busca
-          await page.type("#oraculo-62-input", bairro, { delay: 100 });
-          console.log(`⌨️ Digitado: ${bairro}`);
+            for (const bairro of cliente.bairros) {
+                console.log(`🔎 Tentando filtrar pelo bairro: ${bairro}`);
+        
+                // Pequeno delay para evitar erros
+                await new Promise(r => setTimeout(r, 2000));
+        
+                // Clica no campo de bairro para ativá-lo e abrir a aba de digitação
+                await page.waitForSelector("div.sc-4018a969-0.jsjvMc", { visible: true });
+                await page.click("div.sc-4018a969-0.jsjvMc");
+                console.log("📝 Campo de busca de bairro ativado.");
+        
+                // Aguarda o input específico aparecer e foca nele
+                const inputSelector = "input#ds-inputchips-element-58-input";
+                await page.waitForSelector(inputSelector, { visible: true });
+                await page.focus(inputSelector);
+        
+                // Limpa o campo antes de digitar
+                await page.evaluate((selector) => {
+                    document.querySelector(selector).value = "";
+                }, inputSelector);
+        
+                // Digita o nome do bairro no campo de busca
+                await page.type(inputSelector, bairro, { delay: 100 });
+                console.log(`⌨️ Digitado: ${bairro}`);
+        
+                // Pausa para inspeção do autocomplete
+                // console.log("⏸️ **PAUSA** - Inspecione o autocomplete (10s)...");
+                // await new Promise(r => setTimeout(r, 30000));
+                
+                const listaSelector = "li.sc-3bb93d69-0";
 
-    //       console.log("⏸️ **PAUSA** - Inspecione as opções no navegador (30s)...");
-    //    await gitpage.evaluate(() => new Promise((resolve) => setTimeout(resolve, 30000)));
-      
-            await page.waitForSelector("#oraculo-62-autocomplete-list .exen0V a", { timeout: 5000 });
-            console.log("📜 Sugestões de autocomplete encontradas.");
+                await page.waitForSelector(listaSelector, { timeout: 5000 });
+                console.log("📜 Sugestões de autocomplete carregadas.");
 
-            // Clica na primeira sugestão da lista
-            await page.click("#oraculo-62-autocomplete-list .exen0V a");
-            console.log(`✅ Bairro "${bairro}" selecionado.`);
-
-        }}
+                // Clica no primeiro link da lista de autocomplete
+                const primeiroItemSelector = "li.sc-3bb93d69-0 a";
+                const primeiroItem = await page.$(primeiroItemSelector);
+                if (primeiroItem) {
+                    await primeiroItem.click();
+                    console.log(`✅ Primeiro bairro da lista selecionado.`);
+                } else {
+                    console.log(`🚫 Nenhum bairro encontrado na lista.`);
+                }
+            }
+        
+            }
+         
+    
+    
 
     // Aguarda imóveis aparecerem
     await page.waitForSelector("#main-content section a", { timeout: 20000 });
