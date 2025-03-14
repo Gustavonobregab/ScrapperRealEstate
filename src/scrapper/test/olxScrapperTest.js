@@ -6,88 +6,94 @@ const scrapeOlxTest = async (cliente = null) => {
   let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa";
   const urlParams = new URLSearchParams({ q: "apartamento" });
 
-  
-   urlParams.append("sf", "1");  //imóveis recentes
+  urlParams.append("sf", "1"); // Imóveis recentes
 
   if (cliente) {
     if (cliente.valorMin) urlParams.append("ps", cliente.valorMin);
     if (cliente.valorMax) urlParams.append("pe", cliente.valorMax);
   }
 
-  // Montando a URL final
   baseUrl = `${baseUrl}?${urlParams.toString()}`;
-
   console.log("🔍 URL gerada:", baseUrl);
 
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: false, // Mantenha visível para testar
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
+
   const page = await browser.newPage();
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
   );
-  
+
   try {
-    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 120000 });
     console.log("🌐 Página carregada com sucesso.");
 
-/*    if (cliente?.bairros && cliente.bairros.length > 0) {
-      console.log(`🎯 Aplicando filtros para os bairros: ${cliente.bairros.join(", ")}`);
+    // 🛑 Detecta e fecha o popup de cookies antes de continuar
+    try {
+      const popupSelector = ".adopt-c-deHaIO"; // Classe do popup
+      const acceptBtnSelector = "#adopt-accept-all-button"; // Botão "Aceitar"
+      const rejectBtnSelector = "#adopt-reject-all-button"; // Botão "Rechazar"
 
-      for (const bairro of cliente.bairros) {
-        console.log(`🔎 Tentando filtrar pelo bairro: ${bairro}`);
+      if (await page.$(popupSelector)) {
+        console.log("🍪 Popup de cookies detectado.");
 
-        // Aguardar o campo de busca do bairro e clicar
-        await page.waitForSelector('[placeholder="Digite um bairro ou cidade"]', { timeout: 30000})
-        console.log("📝 Campo de busca de bairro encontrado.");
-
-        // Limpar o input antes de digitar
-        await page.evaluate(() => {
-          document.querySelector("#location-autocomplete-desktop-input").value = "";
-        });
-
-        // Digitar o nome do bairro
-        console.log(`⏳ Digitando o nome do bairro: ${bairro}`);
-        await page.type("#location-autocomplete-desktop-input", bairro, { delay: 100 });
-
-        // Aguardar lista de sugestões aparecer
-        console.log("🔍 Aguardando sugestões de bairro...");
-        await page.waitForFunction(
-          () => document.querySelector('[aria-controls="location-autocomplete-desktop-autocomplete-list"]').getAttribute("aria-expanded") === "true",
-          { timeout: 10000 }
-        );
-        console.log("✔️ Sugestões carregadas.");
-
-        // Esperar um pouco para garantir que as sugestões carreguem
-        await page.waitForTimeout(1500);
-
-        // Selecionar a primeira sugestão
-        console.log("🔎 Selecionando a primeira sugestão...");
-        const suggestions = await page.$$('#location-autocomplete-desktop-autocomplete-list li');
-        if (suggestions.length > 0) {
-          await suggestions[0].click();
-          console.log(`✅ Bairro "${bairro}" aplicado com sucesso!`);
-        } else {
-          console.log(`⚠️ Nenhuma sugestão encontrada para "${bairro}".`);
-          continue; // Pula para o próximo bairro, se houver
+        if (await page.$(acceptBtnSelector)) {
+          await page.click(acceptBtnSelector);
+          console.log("✅ Popup fechado clicando em 'Aceitar'.");
+        } else if (await page.$(rejectBtnSelector)) {
+          await page.click(rejectBtnSelector);
+          console.log("✅ Popup fechado clicando em 'Rechazar'.");
         }
+      }
+    } catch (error) {
+      console.log("✅ Nenhum popup de cookies detectado.");
+    }
 
-        // Aplicar o filtro (esperar botão aparecer)
-        console.log("🔘 Aplicando o filtro de bairro...");
-        await page.waitForSelector('button.sc-1fj0zlm-0.sc-1u27bza-2.gObUhg', { timeout: 10000 });
-        await page.click('button.sc-1fj0zlm-0.sc-1u27bza-2.gObUhg');
+    if (cliente?.bairros && cliente.bairros.length > 0) {
+        console.log(`🎯 Aplicando filtros para os bairros: ${cliente.bairros.join(", ")}`);
+      
+        for (const bairro of cliente.bairros) {
+          console.log(`🔎 Tentando filtrar pelo bairro: ${bairro}`);
+      
+          // 🛠️ Pequeno delay para evitar erros
+          await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 2000)));
+      
+          // Garante que o input está visível
+          await page.waitForSelector("#oraculo-62-input", { visible: true, timeout: 30000 });
+          console.log("📝 Campo de busca de bairro encontrado.");
+      
+          // Clica no input para ativá-lo
+          await page.click("#oraculo-62-input");
+          await page.click("#oraculo-62-input"); // Segundo clique para garantir foco
+      
+          // Limpa o campo antes de digitar
+          await page.evaluate(() => {
+            document.querySelector("#oraculo-62-input").value = "";
+          });
+      
+          // Digita o bairro no campo de busca
+          await page.type("#oraculo-62-input", bairro, { delay: 100 });
+          console.log(`⌨️ Digitado: ${bairro}`);
 
-        // Esperar a página recarregar
-        console.log("⏳ Esperando a página recarregar após aplicar o filtro...");
-        await page.waitForNavigation({ waitUntil: "domcontentloaded" }); 
-      } 
-    } */
+    //       console.log("⏸️ **PAUSA** - Inspecione as opções no navegador (30s)...");
+    //    await gitpage.evaluate(() => new Promise((resolve) => setTimeout(resolve, 30000)));
+      
+            await page.waitForSelector("#oraculo-62-autocomplete-list .exen0V a", { timeout: 5000 });
+            console.log("📜 Sugestões de autocomplete encontradas.");
 
+            // Clica na primeira sugestão da lista
+            await page.click("#oraculo-62-autocomplete-list .exen0V a");
+            console.log(`✅ Bairro "${bairro}" selecionado.`);
+
+        }}
+
+    // Aguarda imóveis aparecerem
     await page.waitForSelector("#main-content section a", { timeout: 20000 });
     const results = await page.evaluate(() => {
       return [...document.querySelectorAll("#main-content section")]
-        .slice(0, 6) // 🚀 Pegando apenas os 6 primeiros imóveis
+        .slice(0, 6)
         .map((element) => {
           const linkElement = element.querySelector("a.olx-ad-card__title-link");
           return {
@@ -97,6 +103,7 @@ const scrapeOlxTest = async (cliente = null) => {
           };
         });
     });
+
     return results;
   } catch (error) {
     console.error("❌ Erro durante o scraping:", error);
