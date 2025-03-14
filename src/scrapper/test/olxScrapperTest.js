@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer";
 
-const scrapeOlx = async (cliente = null) => {
+const scrapeOlxTest = async (cliente = null) => {
   console.log("🕵️ Scraping iniciado...");
 
   let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa";
@@ -106,4 +106,4 @@ const scrapeOlx = async (cliente = null) => {
   }
 };
 
-export default scrapeOlx;
+export default scrapeOlxTest;

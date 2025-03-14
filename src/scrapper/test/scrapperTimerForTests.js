@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { config } from "../../config/config.js";
 import { fetchAllUsers } from "../../services/userService.js";
 import { searchClientsByUserId } from "../../services/clienteService.js";
-import scrapeOlx from "../olxScrapper.js";
+import scrapeOlxTest from "./olxScrapperTest.js";
 import ImovelEnviado from "../../models/imovel.js";
 
 const connectToMongoDB = async () => {
@@ -44,7 +44,7 @@ const processClienteTest = async (cliente) => {
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
   console.log(`🏡 Modalidade: ${cliente.modalidade}`);
 
-  const novosImoveis = await scrapeOlx(cliente);
+  const novosImoveis = await scrapeOlxTest(cliente);
   if (!novosImoveis.length) {
     console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
     return;
