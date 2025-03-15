@@ -1,23 +1,18 @@
 import puppeteer from "puppeteer";
 
+const BASE_URL = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa";
+
+/**
+ * Função principal para scraping.
+ */
 const scrapeOlxTest = async (cliente = null) => {
   console.log("🕵️ Scraping iniciado...");
 
-  let baseUrl = "https://www.olx.com.br/estado-pb/paraiba/joao-pessoa";
-  const urlParams = new URLSearchParams({ q: "apartamento" });
-
-  urlParams.append("sf", "1"); // Imóveis recentes
-
-  if (cliente) {
-    if (cliente.valorMin) urlParams.append("ps", cliente.valorMin);
-    if (cliente.valorMax) urlParams.append("pe", cliente.valorMax);
-  }
-
-  baseUrl = `${baseUrl}?${urlParams.toString()}`;
-  console.log("🔍 URL gerada:", baseUrl);
+  const searchUrl = generateSearchUrl(cliente);
+  console.log("🔍 URL base:", searchUrl);
 
   const browser = await puppeteer.launch({
-    headless: false, // Mantenha visível para testar
+    headless: false,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
@@ -26,104 +21,128 @@ const scrapeOlxTest = async (cliente = null) => {
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
   );
 
+  const allResults = {};
+
   try {
-    await page.goto(baseUrl, { waitUntil: "networkidle2", timeout: 120000 });
+    await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
     console.log("🌐 Página carregada com sucesso.");
 
-    // 🛑 Detecta e fecha o popup de cookies antes de continuar
-    try {
-      const popupSelector = ".adopt-c-deHaIO"; // Classe do popup
-      const acceptBtnSelector = "#adopt-accept-all-button"; // Botão "Aceitar"
-      const rejectBtnSelector = "#adopt-reject-all-button"; // Botão "Rechazar"
+    await handleCookiePopup(page);
 
-      if (await page.$(popupSelector)) {
-        console.log("🍪 Popup de cookies detectado.");
+    for (const bairro of cliente.bairros) {
+      const results = await filterAndExtract(page, bairro);
 
-        if (await page.$(acceptBtnSelector)) {
-          await page.click(acceptBtnSelector);
-          console.log("✅ Popup fechado clicando em 'Aceitar'.");
-        } else if (await page.$(rejectBtnSelector)) {
-          await page.click(rejectBtnSelector);
-          console.log("✅ Popup fechado clicando em 'Rechazar'.");
-        }
+      if (results.length) {
+        allResults[bairro] = results;
+      } else {
+        console.log(`🚫 Nenhum imóvel encontrado em ${bairro}`);
       }
-    } catch (error) {
-      console.log("✅ Nenhum popup de cookies detectado.");
     }
+    console.log("Imoveis pegos",allResults)
 
-    if (cliente?.bairros && cliente.bairros.length > 0) {
-        console.log(`🎯 Aplicando filtros para os bairros: ${cliente.bairros.join(", ")}`);
-            for (const bairro of cliente.bairros) {
-                console.log(`🔎 Tentando filtrar pelo bairro: ${bairro}`);
-        
-                // Pequeno delay para evitar erros
-                await new Promise(r => setTimeout(r, 2000));
-        
-                // Clica no campo de bairro para ativá-lo e abrir a aba de digitação
-                await page.waitForSelector("div.sc-4018a969-0.jsjvMc", { visible: true });
-                await page.click("div.sc-4018a969-0.jsjvMc");
-                console.log("📝 Campo de busca de bairro ativado.");
-        
-                // Aguarda o input específico aparecer e foca nele
-                const inputSelector = "input#ds-inputchips-element-58-input";
-                await page.waitForSelector(inputSelector, { visible: true });
-                await page.focus(inputSelector);
-        
-                // Limpa o campo antes de digitar
-                await page.evaluate((selector) => {
-                    document.querySelector(selector).value = "";
-                }, inputSelector);
-        
-                // Digita o nome do bairro no campo de busca
-                await page.type(inputSelector, bairro, { delay: 100 });
-                console.log(`⌨️ Digitado: ${bairro}`);
-        
-                // Pausa para inspeção do autocomplete
-                // console.log("⏸️ **PAUSA** - Inspecione o autocomplete (10s)...");
-                // await new Promise(r => setTimeout(r, 30000));
-                
-                const listaSelector = "li.sc-3bb93d69-0";
-
-                await page.waitForSelector(listaSelector, { timeout: 5000 });
-                console.log("📜 Sugestões de autocomplete carregadas.");
-
-                // Clica no primeiro link da lista de autocomplete
-                const primeiroItemSelector = "li.sc-3bb93d69-0 a";
-                const primeiroItem = await page.$(primeiroItemSelector);
-                if (primeiroItem) {
-                    await primeiroItem.click();
-                    console.log(`✅ Primeiro bairro da lista selecionado.`);
-                } else {
-                    console.log(`🚫 Nenhum bairro encontrado na lista.`);
-                }
-            }
-        
-            }
-         
-    
-    
-
-    // Aguarda imóveis aparecerem
-    await page.waitForSelector("#main-content section a", { timeout: 20000 });
-    const results = await page.evaluate(() => {
-      return [...document.querySelectorAll("#main-content section")]
-        .slice(0, 6)
-        .map((element) => {
-          const linkElement = element.querySelector("a.olx-ad-card__title-link");
-          return {
-            title: linkElement?.querySelector("h2")?.innerText.trim() || "Sem título",
-            price: element.querySelector("span")?.innerText.trim() || "Sem preço",
-            link: linkElement?.href || "#",
-          };
-        });
-    });
-
-    return results;
+    return allResults;
   } catch (error) {
     console.error("❌ Erro durante o scraping:", error);
-    return [];
+    return {};
   } finally {
     await browser.close();
+  }
+};
+
+/**
+ * Gera a URL de busca com os filtros aplicados.
+ */
+const generateSearchUrl = (cliente) => {
+  const urlParams = new URLSearchParams({ q: "apartamento", sf: "1" });
+
+  if (cliente?.valorMin) urlParams.append("ps", cliente.valorMin);
+  if (cliente?.valorMax) urlParams.append("pe", cliente.valorMax);
+
+  return `${BASE_URL}?${urlParams.toString()}`;
+};
+
+/**
+ * Lida com o popup de cookies caso apareça.
+ */
+const handleCookiePopup = async (page) => {
+  const popupSelector = ".adopt-c-deHaIO";
+  const acceptBtnSelector = "#adopt-accept-all-button";
+  const rejectBtnSelector = "#adopt-reject-all-button";
+
+  const popup = await page.$(popupSelector);
+  if (popup) {
+    console.log("🍪 Popup de cookies detectado.");
+
+    const acceptButton = await page.$(acceptBtnSelector);
+    const rejectButton = await page.$(rejectBtnSelector);
+
+    if (acceptButton) {
+      await acceptButton.click();
+      console.log("✅ Popup fechado clicando em 'Aceitar'.");
+    } else if (rejectButton) {
+      await rejectButton.click();
+      console.log("✅ Popup fechado clicando em 'Rechazar'.");
+    }
+  }
+};
+
+/**
+ * Filtra por bairro e extrai os imóveis.
+ */
+const filterAndExtract = async (page, bairro) => {
+  console.log(`🔎 Buscando imóveis em: ${bairro}`);
+
+  try {
+    await page.waitForSelector("div.sc-4018a969-0.jsjvMc", { visible: true });
+    await page.click("div.sc-4018a969-0.jsjvMc");
+
+    const inputSelector = "input#ds-inputchips-element-58-input";
+    await page.waitForSelector(inputSelector, { visible: true });
+
+    await page.evaluate((selector) => (document.querySelector(selector).value = ""), inputSelector);
+    await page.type(inputSelector, bairro, { delay: 100 });
+
+    await new Promise(resolve => setTimeout(resolve, 5000)); // Opção 1
+
+    const listaSelector = "li.sc-3bb93d69-0";
+    await page.waitForSelector(listaSelector, { timeout: 5000 });
+
+    const primeiroItem = await page.$("li.sc-3bb93d69-0 a");
+    if (primeiroItem) {
+      await primeiroItem.click();
+      console.log(`✅ Bairro "${bairro}" selecionado.`);
+    } else {
+      console.log(`🚫 Nenhum resultado para "${bairro}".`);
+      return [];
+    }
+
+
+    return await extractListings(page);
+  } catch (error) {
+    console.error(`❌ Erro ao processar bairro "${bairro}":`, error);
+    return [];
+  }
+};
+
+/**
+ * Extrai os imóveis da página.
+ */
+const extractListings = async (page) => {
+  try {
+    await page.waitForSelector("#main-content section a", { timeout: 20000 });
+
+    return await page.evaluate(() =>
+      [...document.querySelectorAll("#main-content section")]
+        .slice(0, 6)
+        .map((element) => ({
+          title: element.querySelector("a.olx-ad-card__title-link h2")?.innerText.trim() || "Sem título",
+          price: element.querySelector("span")?.innerText.trim() || "Sem preço",
+          link: element.querySelector("a.olx-ad-card__title-link")?.href || "#",
+        }))
+    );
+  } catch (error) {
+    console.error("❌ Erro ao extrair imóveis:", error);
+    return [];
   }
 };
 
