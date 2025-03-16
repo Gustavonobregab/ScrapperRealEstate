@@ -50,13 +50,14 @@ const processClienteTest = async (cliente) => {
     valorMin: 2000000,
     valorMax: 2800000,
     modalidade: "Compra",
-    bairros: ["Cabo Branco", "Tambaú", "Altiplano"]
+    bairros: ["Cabo Branco", "Tambaú", "Altiplano",]
   };
   const novosImoveis = await scrapeOlxTest(novocliente);
   if (!novosImoveis.length) {
     // console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
     return;
   }
+
 
   // console.log(`🏠 Imóveis encontrados para ${cliente.nome}:`);
   console.log(novosImoveis);
