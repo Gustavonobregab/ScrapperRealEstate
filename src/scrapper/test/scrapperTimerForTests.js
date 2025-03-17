@@ -25,10 +25,9 @@ const runScraping = async () => {
     const users = await fetchAllUsers();
     for (const user of users) {
       const clientes = await searchClientsByUserId(user._id);
-      console.log(clientes);
 
       for (const cliente of clientes.clientes) {
-        await processClienteTest(cliente)
+        await processCliente(cliente)
       }
     }
   } catch (error) {
@@ -37,6 +36,62 @@ const runScraping = async () => {
     mongoose.connection.close();
   }
 };
+
+
+const processCliente = async (cliente) => {
+  console.log(`📢 Buscando imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
+  console.log(`🏡 Modalidade: ${cliente.modalidade}`);
+  
+  const allImoveis = await scrapeOlxTest(cliente);
+  console.log("Todos os imóveis",allImoveis)
+  if (!allImoveis.length) {
+    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
+    return;
+  }
+
+  // Obtendo os links que já foram enviados para este cliente específico
+  const linksEnviados = new Set(
+    await ImovelEnviado.find({ clienteId: cliente._id }).distinct("link")
+  );
+  console.log("🔗 Links já enviados:", linksEnviados);
+
+  // Filtrar apenas os imóveis que ainda não foram enviados para este cliente
+  const imoveisFrescos = allImoveis
+    .filter(imovel => !linksEnviados.has(imovel.link)) // Agora usa o link original
+    .slice(0, 3);
+
+  if (!imoveisFrescos.length) {
+    console.log(`Nenhum NOVO imóvel para ${cliente.nome}`);
+    return;
+  }
+
+  console.log(`🏠 Enviando ${imoveisFrescos.length} imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(imoveisFrescos);
+
+   await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
+  // Inserindo os novos imóveis no banco de dados
+
+  try {
+    const insertedImoveis = await ImovelEnviado.insertMany(
+      imoveisFrescos.map(imovel => ({
+        link: imovel.link, // Agora salva o link sem normalização
+        clienteId: cliente._id,
+      })),
+      { ordered: false }
+    );
+
+
+
+    console.log("✅ Imóveis adicionados:");
+    insertedImoveis.forEach(imovel => {
+      console.log(`📌 ID: ${imovel._id}, Link: ${imovel.link}`);
+    });
+  } catch (error) {
+    console.log("⚠️ Alguns imóveis já foram enviados anteriormente.");
+  }
+};
+
 
 
 const processClienteTest = async (cliente) => {
