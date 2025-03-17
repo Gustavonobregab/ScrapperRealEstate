@@ -44,25 +44,19 @@ const processClienteTest = async (cliente) => {
   // console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
   // console.log(`🏡 Modalidade: ${cliente.modalidade}`);
 
-  const novocliente = {
-    nome: "Renato Figueiredo",
-    email: "renatofig@gmail.com",
-    valorMin: 2000000,
-    valorMax: 2800000,
-    modalidade: "Compra",
-    bairros: ["Cabo Branco", "Tambaú", "Altiplano",]
-  };
-  const novosImoveis = await scrapeOlxTest(novocliente);
+
+  console.log(cliente)
+  const novosImoveis = await scrapeOlxTest(cliente);
   if (!novosImoveis.length) {
     // console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
     return;
   }
 
 
-  // console.log(`🏠 Imóveis encontrados para ${cliente.nome}:`);
+   console.log(`🏠 Imóveis encontrados para ${cliente.nome}:`);
   console.log(novosImoveis);
 };
 
 
 
-processClienteTest();
+runScraping();

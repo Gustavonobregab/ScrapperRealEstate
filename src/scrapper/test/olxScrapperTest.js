@@ -102,7 +102,7 @@ const filterAndExtract = async (page, bairro) => {
     await page.evaluate((selector) => (document.querySelector(selector).value = ""), inputSelector);
     await page.type(inputSelector, bairro, { delay: 100 });
 
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Opção 1
+    await new Promise(resolve => setTimeout(resolve, 3000)); 
 
     const listaSelector = "li.sc-3bb93d69-0";
     await page.waitForSelector(listaSelector, { timeout: 5000 });
