@@ -31,7 +31,6 @@ const scrapeOlxTest = async (cliente = null) => {
 
     for (const bairro of cliente.bairros) {
       const results = await filterAndExtract(page, bairro);
-
       if (results.length) {
         allResults[bairro] = results;
       } else {
@@ -93,8 +92,8 @@ const filterAndExtract = async (page, bairro) => {
   console.log(`🔎 Buscando imóveis em: ${bairro}`);
 
   try {
-    await page.waitForSelector("div.sc-4018a969-0.jsjvMc", { visible: true });
-    await page.click("div.sc-4018a969-0.jsjvMc");
+    // Tenta abrir o seletor de localização com fallback
+    await clickLocalizacao(page);
 
     const inputSelector = "input#ds-inputchips-element-58-input";
     await page.waitForSelector(inputSelector, { visible: true });
@@ -116,7 +115,7 @@ const filterAndExtract = async (page, bairro) => {
       return [];
     }
 
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Opção 1
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     return await extractListings(page);
   } catch (error) {
@@ -124,6 +123,48 @@ const filterAndExtract = async (page, bairro) => {
     return [];
   }
 };
+
+
+const clickLocalizacao = async (page) => {
+  const métodos = [
+    // Método 1: seletor com a classe atual
+    async () => {
+      await page.waitForSelector("div.sc-4018a969-0.bQWLjN", { visible: true, timeout: 2000 });
+      await page.click("div.sc-4018a969-0.bQWLjN");
+      return true;
+    },
+    // Método 2: seletor baseado no texto interno "João Pessoa"
+    async () => {
+      const [el] = await page.$x("//div[contains(@class, 'sc-4018a969-0') and .//span[text()='João Pessoa']]");
+      if (el) {
+        await el.click();
+        return true;
+      }
+      throw new Error("Elemento não encontrado via XPath");
+    },
+    // Método 3: seletor baseado em atributo `data-ds-component`
+    async () => {
+      const el = await page.$("div.sc-4018a969-0 span[data-ds-component='DS-Text']");
+      if (el) {
+        await (await el.getProperty('parentElement')).click();
+        return true;
+      }
+      throw new Error("Elemento não encontrado via atributo data-ds-component");
+    }
+  ];
+
+  for (const metodo of métodos) {
+    try {
+      await metodo();
+      return true; // Se funcionar, sai do loop
+    } catch (_) {
+      // Continua tentando os outros métodos
+    }
+  }
+
+  throw new Error("Nenhum dos métodos de clique na localização funcionou.");
+};
+
 
 /**
  * Extrai os imóveis da página.
