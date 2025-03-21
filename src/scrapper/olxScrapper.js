@@ -12,7 +12,7 @@ const scrapeOlx = async (cliente = null) => {
   console.log("🔍 URL base:", searchUrl);
 
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: 'new', // Modo recomendado para produção
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
@@ -37,7 +37,6 @@ const scrapeOlx = async (cliente = null) => {
         console.log(`🚫 Nenhum imóvel encontrado em ${bairro}`);
       }
     }
-    //console.log("Imoveis pegos",allResults)
 
     return allResults;
   } catch (error) {
@@ -92,13 +91,16 @@ const filterAndExtract = async (page, bairro) => {
   console.log(`🔎 Buscando imóveis em: ${bairro}`);
 
   try {
-    // Tenta abrir o seletor de localização com fallback
     await clickLocalizacao(page);
 
     const inputSelector = "input#ds-inputchips-element-58-input";
     await page.waitForSelector(inputSelector, { visible: true });
 
-    await page.evaluate((selector) => (document.querySelector(selector).value = ""), inputSelector);
+    await page.evaluate((selector) => {
+      const input = document.querySelector(selector);
+      if (input) input.value = "";
+    }, inputSelector);
+
     await page.type(inputSelector, bairro, { delay: 100 });
 
     await new Promise(resolve => setTimeout(resolve, 3000)); 
@@ -124,16 +126,16 @@ const filterAndExtract = async (page, bairro) => {
   }
 };
 
-
+/**
+ * Tenta abrir o seletor de localização.
+ */
 const clickLocalizacao = async (page) => {
   const métodos = [
-    // Método 1: seletor com a classe atual
     async () => {
       await page.waitForSelector("div.sc-4018a969-0.bQWLjN", { visible: true, timeout: 2000 });
       await page.click("div.sc-4018a969-0.bQWLjN");
       return true;
     },
-    // Método 2: seletor baseado no texto interno "João Pessoa"
     async () => {
       const [el] = await page.$x("//div[contains(@class, 'sc-4018a969-0') and .//span[text()='João Pessoa']]");
       if (el) {
@@ -142,7 +144,6 @@ const clickLocalizacao = async (page) => {
       }
       throw new Error("Elemento não encontrado via XPath");
     },
-    // Método 3: seletor baseado em atributo `data-ds-component`
     async () => {
       const el = await page.$("div.sc-4018a969-0 span[data-ds-component='DS-Text']");
       if (el) {
@@ -156,15 +157,12 @@ const clickLocalizacao = async (page) => {
   for (const metodo of métodos) {
     try {
       await metodo();
-      return true; // Se funcionar, sai do loop
-    } catch (_) {
-      // Continua tentando os outros métodos
-    }
+      return true;
+    } catch (_) {}
   }
 
   throw new Error("Nenhum dos métodos de clique na localização funcionou.");
 };
-
 
 /**
  * Extrai os imóveis da página.
