@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { config } from "../../config/config.js";
 import { fetchAllUsers } from "../../services/userService.js";
 import { searchClientsByUserId } from "../../services/clienteService.js";
-import scrapeOlxTest from "./olxScrapperTest.js";
+import scrapeOlx from "./olxScrapperTest.js";
 import ImovelEnviado from "../../models/imovel.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 
@@ -28,7 +28,9 @@ const runScraping = async () => {
       const clientes = await searchClientsByUserId(user._id);
 
       for (const cliente of clientes.clientes) {
-        await processClienteTest(cliente)
+       // await processClienteTest(cliente)
+        await processClienteTestSemFiltro(cliente)
+
       }
     }
   } catch (error) {
@@ -44,7 +46,7 @@ const processCliente = async (cliente) => {
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
   console.log(`🏡 Modalidade: ${cliente.modalidade}`);
   
-  const allImoveis = await scrapeOlxTest(cliente);
+  const allImoveis = await scrapeOlx(cliente);
 
   // Junta todos os arrays de imóveis em um único array
   const listaUnicaDeImoveis = Object.values(allImoveis).flat();
@@ -90,30 +92,29 @@ const processCliente = async (cliente) => {
   }
 };
 
-
 const processClienteTest = async (cliente) => {
-  console.log(`🧪 TESTE: Buscando todos os imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(`📢 Testando busca de imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
   console.log(`🏡 Modalidade: ${cliente.modalidade}`);
 
-  const allImoveis = await scrapeOlxTest(cliente);
-
-  // Junta todos os arrays de imóveis em um único array
+  const allImoveis = await scrapeOlx(cliente);
   const listaUnicaDeImoveis = Object.values(allImoveis).flat();
-  console.log("📦 Total de imóveis captados (sem filtro):", listaUnicaDeImoveis.length);
-
-  if (!listaUnicaDeImoveis.length) {
-    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
-    return;
-  }
-
-  console.log(`🏠 Enviando TODOS os ${listaUnicaDeImoveis.length} imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log("🏠 Imóveis encontrados:", listaUnicaDeImoveis.length);
   console.log(listaUnicaDeImoveis);
-
-  // Envia os imóveis sem considerar se já foram enviados antes
-  await sendEmail(`🧪 TESTE: Todos os imóveis captados para: ${cliente.nome}`, listaUnicaDeImoveis);
 };
 
+
+
+
+const processClienteTestSemFiltro = async (cliente) => {
+  console.log(`📢 Teste SEM FILTRO para ${cliente.nome} (${cliente.email})`);
+
+  const allImoveis = await scrapeOlx(cliente);
+  const listaUnicaDeImoveis = Object.values(allImoveis).flat();
+
+  console.log(`🏠 Lista COMPLETA de imóveis captados para ${cliente.nome}:`);
+  console.log(listaUnicaDeImoveis);
+};
 
 
 runScraping();
