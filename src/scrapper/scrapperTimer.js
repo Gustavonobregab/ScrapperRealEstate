@@ -29,7 +29,6 @@ const runScraping = async () => {
       console.log(clientes);
 
       for (const cliente of clientes.clientes) {
-     //   await processClienteTest(cliente)
         await processCliente(cliente);
       }
     }
@@ -45,26 +44,26 @@ const processCliente = async (cliente) => {
   console.log(`📢 Buscando imóveis para ${cliente.nome} (${cliente.email})`);
   console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
   console.log(`🏡 Modalidade: ${cliente.modalidade}`);
+  
+  const allImoveis = await scrapeOlx(cliente);
 
-  const novosImoveis = await scrapeOlx(cliente);
-  if (!novosImoveis.length) {
-    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
-    return;
-  }
+  // Junta todos os arrays de imóveis em um único array
+  const listaUnicaDeImoveis = Object.values(allImoveis).flat();
+  console.log("📦 Total de imóveis captados:", listaUnicaDeImoveis.length);
 
-  // Obtendo os links que já foram enviados para este cliente específico
   const linksEnviados = new Set(
     await ImovelEnviado.find({ clienteId: cliente._id }).distinct("link")
   );
-  console.log("🔗 Links já enviados:", linksEnviados);
+  console.log("🔗 Links já enviados:", linksEnviados.size);
 
-  // Filtrar apenas os imóveis que ainda não foram enviados para este cliente
-  const imoveisFrescos = novosImoveis
-    .filter(imovel => !linksEnviados.has(imovel.link)) // Agora usa o link original
-    .slice(0, 3);
+
+  console.log("Lista de imoveis novos captados:",listaUnicaDeImoveis)
+  const imoveisFrescos = listaUnicaDeImoveis
+    .filter(imovel => !linksEnviados.has(imovel.link))
+  
 
   if (!imoveisFrescos.length) {
-    console.log(`🚫 Nenhum novo imóvel para ${cliente.nome}`);
+    console.log(`🚫 Nenhum NOVO imóvel para ${cliente.nome}`);
     return;
   }
 
@@ -72,27 +71,26 @@ const processCliente = async (cliente) => {
   console.log(imoveisFrescos);
 
    await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
-  // Inserindo os novos imóveis no banco de dados
 
   try {
+    
     const insertedImoveis = await ImovelEnviado.insertMany(
       imoveisFrescos.map(imovel => ({
-        link: imovel.link, // Agora salva o link sem normalização
+        link: imovel.link,
         clienteId: cliente._id,
       })),
       { ordered: false }
     );
 
-
-
-    console.log("✅ Imóveis adicionados:");
     insertedImoveis.forEach(imovel => {
       console.log(`📌 ID: ${imovel._id}, Link: ${imovel.link}`);
     });
+    
   } catch (error) {
     console.log("⚠️ Alguns imóveis já foram enviados anteriormente.");
   }
 };
+
 
 
 const processClienteTest = async (cliente) => {

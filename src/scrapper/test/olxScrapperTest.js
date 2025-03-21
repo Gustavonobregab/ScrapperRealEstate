@@ -37,7 +37,7 @@ const scrapeOlxTest = async (cliente = null) => {
         console.log(`🚫 Nenhum imóvel encontrado em ${bairro}`);
       }
     }
-    console.log("Imoveis pegos",allResults)
+    //console.log("Imoveis pegos",allResults)
 
     return allResults;
   } catch (error) {

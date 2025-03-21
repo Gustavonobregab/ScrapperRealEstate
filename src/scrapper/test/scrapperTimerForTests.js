@@ -4,6 +4,7 @@ import { fetchAllUsers } from "../../services/userService.js";
 import { searchClientsByUserId } from "../../services/clienteService.js";
 import scrapeOlxTest from "./olxScrapperTest.js";
 import ImovelEnviado from "../../models/imovel.js";
+import { sendEmail } from "../../utils/sendEmail.js";
 
 const connectToMongoDB = async () => {
   try {
@@ -27,7 +28,7 @@ const runScraping = async () => {
       const clientes = await searchClientsByUserId(user._id);
 
       for (const cliente of clientes.clientes) {
-        await processCliente(cliente)
+        await processClienteTest(cliente)
       }
     }
   } catch (error) {
@@ -44,25 +45,24 @@ const processCliente = async (cliente) => {
   console.log(`🏡 Modalidade: ${cliente.modalidade}`);
   
   const allImoveis = await scrapeOlxTest(cliente);
-  console.log("Todos os imóveis",allImoveis)
-  if (!allImoveis.length) {
-    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
-    return;
-  }
 
-  // Obtendo os links que já foram enviados para este cliente específico
+  // Junta todos os arrays de imóveis em um único array
+  const listaUnicaDeImoveis = Object.values(allImoveis).flat();
+  console.log("📦 Total de imóveis captados:", listaUnicaDeImoveis.length);
+
   const linksEnviados = new Set(
     await ImovelEnviado.find({ clienteId: cliente._id }).distinct("link")
   );
-  console.log("🔗 Links já enviados:", linksEnviados);
+  console.log("🔗 Links já enviados:", linksEnviados.size);
 
-  // Filtrar apenas os imóveis que ainda não foram enviados para este cliente
-  const imoveisFrescos = allImoveis
-    .filter(imovel => !linksEnviados.has(imovel.link)) // Agora usa o link original
-    .slice(0, 3);
+
+  console.log("Lista de imoveis novos captados:",listaUnicaDeImoveis)
+  const imoveisFrescos = listaUnicaDeImoveis
+    .filter(imovel => !linksEnviados.has(imovel.link))
+  
 
   if (!imoveisFrescos.length) {
-    console.log(`Nenhum NOVO imóvel para ${cliente.nome}`);
+    console.log(`🚫 Nenhum NOVO imóvel para ${cliente.nome}`);
     return;
   }
 
@@ -70,46 +70,48 @@ const processCliente = async (cliente) => {
   console.log(imoveisFrescos);
 
    await sendEmail(`🚀 Captação Fresquinha chegando para: ${cliente.nome}`, imoveisFrescos);
-  // Inserindo os novos imóveis no banco de dados
 
   try {
+    
     const insertedImoveis = await ImovelEnviado.insertMany(
       imoveisFrescos.map(imovel => ({
-        link: imovel.link, // Agora salva o link sem normalização
+        link: imovel.link,
         clienteId: cliente._id,
       })),
       { ordered: false }
     );
 
-
-
-    console.log("✅ Imóveis adicionados:");
     insertedImoveis.forEach(imovel => {
       console.log(`📌 ID: ${imovel._id}, Link: ${imovel.link}`);
     });
+    
   } catch (error) {
     console.log("⚠️ Alguns imóveis já foram enviados anteriormente.");
   }
 };
 
 
-
 const processClienteTest = async (cliente) => {
-  // console.log(`📢 Testando busca de imóveis para ${cliente.nome} (${cliente.email})`);
-  // console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
-  // console.log(`🏡 Modalidade: ${cliente.modalidade}`);
+  console.log(`🧪 TESTE: Buscando todos os imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(`💰 Faixa de preço: R$${cliente.valorMin} - R$${cliente.valorMax}`);
+  console.log(`🏡 Modalidade: ${cliente.modalidade}`);
 
+  const allImoveis = await scrapeOlxTest(cliente);
 
-  console.log(cliente)
-  const novosImoveis = await scrapeOlxTest(cliente);
-  if (!novosImoveis.length) {
-    // console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
+  // Junta todos os arrays de imóveis em um único array
+  const listaUnicaDeImoveis = Object.values(allImoveis).flat();
+  console.log("📦 Total de imóveis captados (sem filtro):", listaUnicaDeImoveis.length);
+
+  if (!listaUnicaDeImoveis.length) {
+    console.log(`🚫 Nenhum imóvel encontrado para ${cliente.nome}`);
     return;
   }
 
+  console.log(`🏠 Enviando TODOS os ${listaUnicaDeImoveis.length} imóveis para ${cliente.nome} (${cliente.email})`);
+  console.log(listaUnicaDeImoveis);
 
-   console.log(`🏠 Imóveis encontrados para ${cliente.nome}:`);
-  console.log(novosImoveis);
+  // Envia os imóveis sem considerar se já foram enviados antes
+  await sendEmail(`🧪 TESTE: Todos os imóveis captados para: ${cliente.nome}`, listaUnicaDeImoveis);
 };
 
 
