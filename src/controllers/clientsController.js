@@ -1,4 +1,4 @@
-import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily, deleteClientById } from "../services/clienteService.js";
+import { createAClient, searchClientById, searchAllClients, scrapeAndSendDaily, deleteClientById , searchAllClientsByUserId} from "../services/clienteService.js";
 import scrapeOlx from "../scrapper/olxScrapper.js";
 
 export const createClient = async (req, res, next) => {
@@ -19,6 +19,24 @@ export const createClient = async (req, res, next) => {
     next(error)
   }
 };
+
+export const getUserClientes = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    const result = await searchAllClientsByUserId(userId);
+
+    if (!result.success) {
+      return res.status(404).json({ message: result.message });
+    }
+
+    return res.status(200).json({ clientes: result.clientes });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 export const getClientImoveis = async (req, res, next) => {
   try {

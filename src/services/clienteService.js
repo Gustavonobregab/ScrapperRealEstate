@@ -66,6 +66,21 @@ export const searchClientById = async (id) => {
   }
 };
 
+export const searchAllClientsByUserId = async (userId) => {
+  try {
+    const user = await User.findById(userId).populate('clientes');
+
+    if (!user) {
+      return { success: false, message: "Usuário não encontrado." };
+    }
+
+    return { success: true, clientes: user.clientes };
+  } catch (error) {
+    return { success: false, error: "Erro ao buscar clientes." };
+  }
+};
+
+
 
 export const searchAllClients = async () => {
   try {

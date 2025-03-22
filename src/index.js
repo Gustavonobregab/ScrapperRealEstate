@@ -4,14 +4,25 @@ import dotenv from "dotenv";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import mongoose from "mongoose";
 import { config } from "./config/config.js";
+import cors from 'cors';
 
 dotenv.config();
 
 // Criando a aplicação Express
 const app = express();
+
+// Libera acesso para o front rodando em localhost:3001
+app.use(cors({
+  origin: 'http://localhost:3001',
+  credentials: true
+}));
+
+
 app.use(express.json());
 app.use("/api", router); 
 app.use(errorMiddleware);
+
+
 
 
 // Conectando ao MongoDB
