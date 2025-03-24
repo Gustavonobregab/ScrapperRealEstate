@@ -7,6 +7,7 @@ import ImovelEnviado from "../../models/imovel.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 
 const connectToMongoDB = async () => {
+  if (mongoose.connection.readyState === 1) return;
   try {
     await mongoose.connect(config.mongo.url, {
       useNewUrlParser: true,
