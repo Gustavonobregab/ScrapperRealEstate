@@ -1,1 +1,4 @@
+RESTful API with TypeScript, Node.js, MongoDB, Express, integrated with a full-stack microservice using React and Next.js, deployed on AWS.
+The project is a scalable SaaS platform designed to streamline collaboration between frontend and backend developers. Built with a modular architecture, it ensures high performance, security, and maintainability. The backend API handles data management and business logic, while the frontend provides an intuitive interface for users. Hosted on AWS, the application follows software architecture best practices to support growth and robustness. The platform generated R$200,000 in revenue for the client, validating its market fit and business value.
+
 <img width="1679" alt="Captura de pantalla 2025-03-24 a la(s) 18 31 33" src="https://github.com/user-attachments/assets/6cb6f523-78e1-473c-b060-ee7ecebaa1b3" />
